@@ -6,7 +6,7 @@ export function NewTodoForm({onSubmit}) {
     function handleSubmit(e) {
         e.preventDefault()
         if (newItem === "") return
-    
+
         onSubmit(newItem)
     
         setNewItem("")

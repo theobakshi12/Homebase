@@ -6,59 +6,42 @@ import { useEffect } from 'react';
 import Axios from "axios";
 
 export default function App() {
-  const [todos, setTodos] = useState(() => {
-    const localValue = localStorage.getItem("ITEMS")
-    if (localValue == null) return []
+  const [todos, setTodos] = useState([ ])
+  const [newTodo, setNewTodo] = useState("")
 
-    return JSON.parse(localValue)
-  })
+  const getTodos = () => {
+    Axios.get("http://localhost:3001/getTodos").then((response) => {
+      setTodos(response.data)
+    })
+  }
 
-  const [listOfUsers, setListOfUsers] = useState([ ])
-  const [name, setName] = useState("")
-  const [age, setAge] = useState(0)
-  const [username, setUsername] = useState("")
-
-
-  const createUser = () => {
-    Axios.post("http://localhost:3001/createUser", {
-      name, 
-      age, 
-      username
+  const addTodo = () => {
+    Axios.post("http://localhost:3001/addTodo", {
+      content: newTodo
     }).then((response) => {
-      setListOfUsers([...listOfUsers, {name, age, username}])
+      const addedTodo = response.data
+      setTodos([...todos, addedTodo])
+      setNewTodo("") //clear input
+    }).catch((error) => {
+      console.error("Failed to add todo:", error)
     })
   }
 
   useEffect(() => {
-    Axios.get("http://localhost:3001/getUsers").then((response) => {
-      setListOfUsers(response.data)
-    })
-
-    localStorage.setItem("ITEMS", JSON.stringify(todos))
-  }, [todos])
-
-  function addTodo(title) {
-    setTodos((currentTodos => {
-      return [
-        ...currentTodos,
-        {
-          id: crypto.randomUUID(),
-          title,
-          completed: false
-        }
-      ]
-    }))
-  }
+    getTodos()
+  }, [])
 
   function toggleTodo(id, completed) {
-    setTodos(currentTodos => {
-      return currentTodos.map(todo => {
-        if (todo.id === id) {
-          return { ...todo, completed }
-        }
-
-        return todo
-      })
+    Axios.get("http://localhost:3001/updateTodo").then((response) => {
+      setTodos(
+        response.data.map(todo => {
+          if (todo.id === id) {
+            return { ...todo, completed }
+          }
+  
+          return todo
+        })
+      )
     })
   }
 
@@ -70,45 +53,13 @@ export default function App() {
 
   return (
   <>
-    <div className="usersDisplay">
-      {listOfUsers.map((user) => {
-        return <div>
-          Name: {user.name}
-          Age: {user.age}
-          Username: {user.username}
-        </div>
-      })
-      }
-    </div>
-
-    <div>
-      <input 
-        type="text" 
-        placeholder="Name..." 
-        onChange={(event) => {setName(event.target.value)
-        }}
-      />
-      <input 
-        type="number" 
-        placeholder="Age..." 
-        onChange={(event) => {setAge(event.target.value)
-        }}
-      />
-      <input 
-        type="text" 
-        placeholder="Username..." 
-        onChange={(event) => {setUsername(event.target.value)
-        }}
-      />
-      <button onClick={createUser}>Create User</button>
-    </div>
-
   <NewTodoForm onSubmit={addTodo}/>
     <h1 className="header">tasks</h1>
     <TodoList 
     todos={todos}
     toggleTodo={toggleTodo}
-    deleteTodo={deleteTodo}/>
+    deleteTodo={deleteTodo}
+    />
   </>
   )
 }
