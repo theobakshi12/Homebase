@@ -27,12 +27,29 @@ app.post("/addTodo", async (req, res) => {
     res.json(savedTodo)
 })
 
-app.patch("/updateTodo:id", async (req, res) => {
-    const todo = req.body
-    await todo.save()
+app.patch("/updateTodo/:_id", async (req, res) => {
+    const _id = req.params._id
+    const completed = req.body.completed
 
-    res.json(todo)
+    const updatedTodo = await TodoModel.findByIdAndUpdate(_id, { completed }, { new: true });
+
+    res.json(updatedTodo)
 })
+
+app.delete("/deleteTodo/:_id", async (req, res) => {
+    const _id = req.params._id;
+    
+    try {
+        const result = await TodoModel.findByIdAndDelete(_id);
+        if (!result) {
+            return res.status(404).send({ message: "Todo not found" });
+        }
+        res.status(200).send({ message: "Todo deleted successfully" });
+    } catch (error) {
+        res.status(500).send({ message: "Server error", error: error.message });
+    }
+});
+
 
 app.listen(3001, () => {
     console.log("SERVER RUNS WELL")

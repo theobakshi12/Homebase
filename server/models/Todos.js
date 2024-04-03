@@ -4,6 +4,10 @@ const TodoSchema = new mongoose.Schema({
     content: {
         type: String,
         required: true,
+    },
+    completed: {
+        type: Boolean,
+        required: true
     }
 })
 
